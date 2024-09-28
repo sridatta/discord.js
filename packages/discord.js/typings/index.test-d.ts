@@ -33,6 +33,7 @@ import {
   APIMentionableSelectComponent,
   APIModalInteractionResponseCallbackData,
   WebhookType,
+  MessageFlags,
 } from 'discord-api-types/v10';
 import {
   ApplicationCommand,
@@ -1349,7 +1350,7 @@ expectAssignable<unknown>(
   ),
 );
 expectType<never>(serialize(Symbol('a')));
-expectType<never>(serialize(() => {}));
+expectType<never>(serialize(() => { }));
 expectType<never>(serialize(BigInt(42)));
 
 // Test type return of broadcastEval:
@@ -2605,16 +2606,22 @@ expectType<Collection<Snowflake, StickerPack>>(await client.fetchStickerPacks())
 expectType<Collection<Snowflake, StickerPack>>(await client.fetchStickerPacks({}));
 expectType<StickerPack>(await client.fetchStickerPacks({ packId: snowflake }));
 
-client.on('interactionCreate', interaction => {
-  if (!interaction.channel) {
-    return;
-  }
+await textChannel.send({
+  files: [
+    new AttachmentBuilder('https://example.com/voice-message.ogg')
+      .setDuration(2)
+      .setWaveform('AFUqPDw3Eg2hh4+gopOYj4xthU4='),
+  ],
+  flags: MessageFlags.IsVoiceMessage,
+});
 
-  // @ts-expect-error
-  interaction.channel.send();
-
-  if (interaction.channel.isSendable()) {
-    expectType<SendableChannels>(interaction.channel);
-    interaction.channel.send({ embeds: [] });
-  }
+await textChannel.send({
+  files: [
+    {
+      attachment: 'https://example.com/voice-message.ogg',
+      duration: 2,
+      waveform: 'AFUqPDw3Eg2hh4+gopOYj4xthU4=',
+    },
+  ],
+  flags: MessageFlags.IsVoiceMessage,
 });
